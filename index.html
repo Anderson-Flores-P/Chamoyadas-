@@ -385,6 +385,11 @@
     </div>
   </footer>
 
+  <div class="site-countdown-chip" id="site-countdown-chip" aria-live="polite" hidden>
+    <span class="site-countdown-chip-label">Bloqueo en</span>
+    <span class="site-countdown-chip-value" id="site-countdown-chip-value">15d 00:00:00</span>
+  </div>
+
   <div class="site-notice" id="site-notice" role="dialog" aria-modal="true" aria-labelledby="site-notice-title" aria-describedby="site-notice-text">
     <div class="site-notice-backdrop" aria-hidden="true"></div>
     <div class="site-notice-panel">
@@ -392,6 +397,24 @@
       <p class="site-notice-text" id="site-notice-text">
         Este sitio web será bloqueado. Para poder verlo debes hablar con el autor de la página.
       </p>
+      <div class="site-countdown" id="site-countdown" aria-label="Tiempo restante hasta el bloqueo">
+        <div class="site-countdown-unit">
+          <span class="site-countdown-num" id="cd-days">15</span>
+          <span class="site-countdown-lbl">días</span>
+        </div>
+        <div class="site-countdown-unit">
+          <span class="site-countdown-num" id="cd-hours">00</span>
+          <span class="site-countdown-lbl">horas</span>
+        </div>
+        <div class="site-countdown-unit">
+          <span class="site-countdown-num" id="cd-mins">00</span>
+          <span class="site-countdown-lbl">min</span>
+        </div>
+        <div class="site-countdown-unit">
+          <span class="site-countdown-num" id="cd-secs">00</span>
+          <span class="site-countdown-lbl">seg</span>
+        </div>
+      </div>
       <button type="button" class="btn btn-primary btn-pill site-notice-accept" id="site-notice-accept">
         Aceptar
       </button>
@@ -413,16 +436,102 @@
 
   <script>
     (function () {
+      // Inicio: 5 ago 2026. Bloqueo tras 15 días.
+      var DEADLINE = new Date(2026, 7, 5 + 15, 23, 59, 59, 999).getTime();
+
       var notice = document.getElementById("site-notice");
       var accept = document.getElementById("site-notice-accept");
-      if (notice && accept) {
-        document.body.classList.add("notice-locked");
-        accept.addEventListener("click", function () {
-          notice.classList.add("is-hidden");
-          document.body.classList.remove("notice-locked");
-          notice.setAttribute("aria-hidden", "true");
+      var title = document.getElementById("site-notice-title");
+      var text = document.getElementById("site-notice-text");
+      var chip = document.getElementById("site-countdown-chip");
+      var chipValue = document.getElementById("site-countdown-chip-value");
+      var elDays = document.getElementById("cd-days");
+      var elHours = document.getElementById("cd-hours");
+      var elMins = document.getElementById("cd-mins");
+      var elSecs = document.getElementById("cd-secs");
+      var blocked = false;
+      var accepted = false;
+
+      function pad(n) {
+        return n < 10 ? "0" + n : String(n);
+      }
+
+      function remaining() {
+        return Math.max(0, DEADLINE - Date.now());
+      }
+
+      function parts(ms) {
+        var total = Math.floor(ms / 1000);
+        var days = Math.floor(total / 86400);
+        var hours = Math.floor((total % 86400) / 3600);
+        var mins = Math.floor((total % 3600) / 60);
+        var secs = total % 60;
+        return { days: days, hours: hours, mins: mins, secs: secs };
+      }
+
+      function renderTimer(ms) {
+        var p = parts(ms);
+        if (elDays) elDays.textContent = String(p.days);
+        if (elHours) elHours.textContent = pad(p.hours);
+        if (elMins) elMins.textContent = pad(p.mins);
+        if (elSecs) elSecs.textContent = pad(p.secs);
+        if (chipValue) {
+          chipValue.textContent =
+            p.days + "d " + pad(p.hours) + ":" + pad(p.mins) + ":" + pad(p.secs);
+        }
+      }
+
+      function lockSite() {
+        if (blocked) return;
+        blocked = true;
+        document.body.classList.add("site-blocked", "notice-locked");
+        document.body.classList.remove("notice-accepted");
+        if (notice) {
+          notice.classList.remove("is-hidden");
+          notice.removeAttribute("aria-hidden");
+          notice.classList.add("is-blocked");
+        }
+        if (title) title.textContent = "Sitio bloqueado";
+        if (text) {
+          text.textContent =
+            "El tiempo terminó. Esta página está bloqueada. Habla con el autor para poder verla.";
+        }
+        if (accept) accept.hidden = true;
+        if (chip) chip.hidden = true;
+        renderTimer(0);
+      }
+
+      function tick() {
+        var ms = remaining();
+        renderTimer(ms);
+        if (ms <= 0) {
+          lockSite();
+          return;
+        }
+        requestAnimationFrame(function () {
+          setTimeout(tick, 250);
         });
-        accept.focus();
+      }
+
+      if (notice && accept) {
+        if (remaining() <= 0) {
+          lockSite();
+        } else {
+          document.body.classList.add("notice-locked");
+          accept.addEventListener("click", function () {
+            if (blocked) return;
+            accepted = true;
+            notice.classList.add("is-hidden");
+            document.body.classList.remove("notice-locked");
+            document.body.classList.add("notice-accepted");
+            notice.setAttribute("aria-hidden", "true");
+            if (chip) chip.hidden = false;
+          });
+          accept.focus();
+          tick();
+        }
+      } else {
+        tick();
       }
 
       var header = document.querySelector(".site-header");
@@ -431,6 +540,7 @@
       if (!header || !toggle || !nav) return;
 
       function setOpen(open) {
+        if (blocked) return;
         header.classList.toggle("nav-open", open);
         toggle.setAttribute("aria-expanded", open ? "true" : "false");
         toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");

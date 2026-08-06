@@ -1004,3 +1004,106 @@ body.notice-locked {
 .site-notice-accept {
   min-width: 10rem;
 }
+
+.site-notice-accept[hidden] {
+  display: none;
+}
+
+.site-countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-base);
+  margin-bottom: var(--space-md);
+}
+
+.site-countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-xs);
+  background: var(--surface-container-low);
+  border: 2px solid var(--outline-variant);
+  border-radius: var(--rounded-md);
+}
+
+.site-countdown-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.site-countdown-lbl {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.site-countdown-chip {
+  position: fixed;
+  top: calc(var(--header-h) + var(--space-base));
+  right: var(--margin-mobile);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0.55rem 0.85rem;
+  background: var(--surface-container-lowest);
+  border: var(--border-thick);
+  border-radius: var(--rounded-md);
+  box-shadow: var(--shadow-block);
+  pointer-events: none;
+}
+
+.site-countdown-chip[hidden] {
+  display: none;
+}
+
+.site-countdown-chip-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.site-countdown-chip-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+/* Bloqueo total: página borrosa e inaccesible */
+body.site-blocked {
+  overflow: hidden;
+}
+
+body.site-blocked > *:not(.site-notice) {
+  filter: blur(14px);
+  pointer-events: none;
+  user-select: none;
+}
+
+body.site-blocked .site-notice-backdrop {
+  background: color-mix(in srgb, var(--on-surface) 72%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+body.site-blocked .site-notice-title {
+  color: var(--secondary);
+}
+
+@media (min-width: 768px) {
+  .site-countdown-chip {
+    right: var(--margin-desktop);
+  }
+}
