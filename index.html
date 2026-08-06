@@ -385,6 +385,19 @@
     </div>
   </footer>
 
+  <div class="site-notice" id="site-notice" role="dialog" aria-modal="true" aria-labelledby="site-notice-title" aria-describedby="site-notice-text">
+    <div class="site-notice-backdrop" aria-hidden="true"></div>
+    <div class="site-notice-panel">
+      <h2 class="site-notice-title" id="site-notice-title">Aviso importante</h2>
+      <p class="site-notice-text" id="site-notice-text">
+        Este sitio web será bloqueado. Para poder verlo debes hablar con el autor de la página.
+      </p>
+      <button type="button" class="btn btn-primary btn-pill site-notice-accept" id="site-notice-accept">
+        Aceptar
+      </button>
+    </div>
+  </div>
+
   <a
     id="ordenar"
     class="whatsapp-fab"
@@ -400,6 +413,18 @@
 
   <script>
     (function () {
+      var notice = document.getElementById("site-notice");
+      var accept = document.getElementById("site-notice-accept");
+      if (notice && accept) {
+        document.body.classList.add("notice-locked");
+        accept.addEventListener("click", function () {
+          notice.classList.add("is-hidden");
+          document.body.classList.remove("notice-locked");
+          notice.setAttribute("aria-hidden", "true");
+        });
+        accept.focus();
+      }
+
       var header = document.querySelector(".site-header");
       var toggle = document.querySelector(".nav-toggle");
       var nav = document.getElementById("site-nav");
